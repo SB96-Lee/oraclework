@@ -97,7 +97,7 @@ FROM EMPLOYEE;
 
 --EMPLOYEE 테이블에서 사번, 사원명, 급여, 원, 보너스, % 조회
 SELECT EMP_ID, EMP_NAME, SALARY, '원' AS 단위, BONUS, '%' "단위(%)"
-FROM EMPLOYEE
+FROM EMPLOYEE;
 
 -------------------------------------------------------------------------------
 /*
