@@ -185,7 +185,7 @@ From Employee;
     ABS(NUMBER)
 */
 SELECT ABS(-10)FROM DUAL;
-
+SELECT ABS(-102.123)FROM DUAL;
 ------------------------------------------------------------------------
 /*
     *MOD: 두 수를 나눈 나머지값을 반환해주는 함수     
@@ -206,7 +206,7 @@ SELECT MOD(10,3) FROM DUAL;
 SELECT ROUND(1234.567) FROM DUAL; --위치 생략시 0
 SELECT ROUND(12.345) FROM DUAL;
 SELECT ROUND(1234.56789, 2) FROM DUAL;
-SELECT ROUND(12.34, 4) FROM DUAL;
+SELECT ROUND(12.34, 1) FROM DUAL;
 SELECT ROUND(1234.5678,-2) FROM DUAL;
 SELECT ROUND(1734.5678,-3) FROM DUAL;
 
@@ -394,7 +394,7 @@ SELECT TO_CHAR(HIRE_DATE, 'YY"년" MM"월" DD"일"') FROM EMPLOYEE;
 
 --년도
 /*
-    yy는 무조건 앞에'20'이 붙는다
+    yy는 무조건 앞에'20'이 붙는다, 현재세기
     rr는 50년을 기준으로 50보다 작으면 앞에'20'붙이고, 50보다 크면'19를 붙인다
 */
 
@@ -494,4 +494,152 @@ FROM EMPLOYEE;
 
 --EMPLOYEE테이블에서 사원명, 급여, 보너스, 성과급(보너스를 받는 사람은 50%를 주고, 보너스를 못받는 사람은 10%)
 SELECT EMP_NAME,SALARY, NVL(BONUS, 0), SALARY*NVL2(BONUS, 0.5, 0.1) 성과금
+FROM EMPLOYEE;
+
+-------------------------------------------------------------------------------
+/*
+    *NULLIF(비교대상1, 비교대상2)
+    - 두개의 값이 일치하면 null 반환
+    - 두개의 값이 일치하지 않으면 원래 값 반환.
+*/
+SELECT NULLIF('123','123') FROM DUAL;
+SELECT NULLIF('123','345') FROM DUAL;
+
+=============================================================================
+--                              <선택 함수>
+=============================================================================
+/*
+    *DECODE(비교하고자하는 대상(컬럼|산술연산|함수식), 비교값1, 결과값1, 비교값2, 결과값2 ... )
+    
+    switch(비교대상) (
+        case 비교값1 :
+        결과값1;
+        case 비교값1 : 
+        결과값2;
+    )
+*/
+--사번, 사원명, 주민번호, 성별(남,여)
+SELECT EMP_ID, EMP_NAME, EMP_NO, DECODE(SUBSTR(EMP_NO, 8, 1),'1','남','2','여','3','남','4','여') 성별
+FROM EMPLOYEE;
+
+--사원명, 직급코드, 기존급여, 인상된 급여
+/*
+    J7 : 10% 인상
+    J6 : 15% 인상
+    J5 : 20% 인상
+    그외 : 5% 인상
+*/
+
+SELECT EMP_NAME, JOB_CODE, SALARY
+    , DECODE(JOB_CODE, 'J7', SALARY*1.1, 
+                       'J6', SALARY*1.15, 
+                       'J5', SALARY*1.2,
+                            SALARY*1.05) 인상된급여
+FROM EMPLOYEE;
+
+-------------------------------------------------------------------------------
+/*
+    *CASE WHEN THEN
+     END
+    
+    CASE WHEN 조건식1 THEN 결과값1
+        WHEN 조건식2 THEN 결과값2
+        ....
+        ELSE 결과값
+        END
+        
+    [프로그램의 IF문과 동일]    
+    IF(조건식){조건이 참일 때 실행}
+    ELSE IF(조건식){조건이 참일 때 실행}
+    ELSE IF(조건식){조건이 참일 때 실행}
+    ....
+    ELSE(실행문)
+*/
+
+--사원명, 급여, 등급(급여에 따라 등급을 매긴다(5백만원 이상이면 '고급', 5백~3백 '중급', 나머지 '초급')
+SELECT EMP_NAME, SALARY 
+    ,CASE WHEN SALARY >= 5000000 THEN '고급'
+             WHEN SALARY >= 3000000 THEN '중급'
+             ELSE '초급'
+             END 등급
+FROM EMPLOYEE;           
+
+=============================================================================
+--                              <그룹 함수>
+=============================================================================
+/*
+    *SUM(숫자타입의 컬럼) : 해당 컬럼 값들의 총 합계를 반환해주는 함수
+*/
+--전사원의 총 급여의 합
+SELECT SUM(SALARY) "총급여 합"
+FROM EMPLOYEE;
+
+--남자사원의 총 급여의 합
+SELECT SUM(SALARY) "남자사원의 급여 합"
+FROM EMPLOYEE
+WHERE SUBSTR(EMP_NO, 8, 1)IN('1','3');
+
+--부서코드가 D5인 사원의 연봉의 총합
+SELECT SUM(SALARY*12) "부서 D5 연봉 총합"
+FROM EMPLOYEE
+WHERE DEPT_CODE = 'D5';
+
+--부서코드가 D5인 사원의 보너스를 포함한 연봉의 총합
+SELECT SUM(SALARY*NVL(1+BONUS,1)*12) "부서 D5 보너스 포함 연봉 총합"
+FROM EMPLOYEE
+WHERE DEPT_CODE = 'D5';
+
+-- 전사원의 총 급여의 합 형식 \000,000,000
+SELECT TO_CHAR(SUM(SALARY), 'L999,999,999') "총급여 합"
+FROM EMPLOYEE;
+
+-----------------------------------------------------------------------------
+/*
+    *AVG(숫자타입의 컬럼) : 해당 컬럼값의 평균을 반환해 주는 함수
+*/
+--전체사원의 급여의 평균
+SELECT AVG(SALARY)
+FROM EMPLOYEE;
+
+SELECT ROUND(AVG(SALARY))
+FROM EMPLOYEE;
+
+SELECT ROUND(AVG(SALARY), 2)
+FROM EMPLOYEE;
+
+-----------------------------------------------------------------------------
+/*
+    *MIN(모든타입의 컬럼) : 해당 컬럼값들 중 가장 작은값을 반환해 주는 함수
+    *MAX(모든타입의 컬럼) : 해당 컬럼값들 중 가장 큰 값을 반환해 주는 함수
+*/
+
+SELECT MIN(EMP_NAME), MIN(SALARY), MIN(HIRE_DATE)
+FROM EMPLOYEE;
+
+SELECT MAX(EMP_NAME), MAX(SALARY), MAX(HIRE_DATE)
+FROM EMPLOYEE;
+
+-------------------------------------------------------------------------------
+/*
+    *COUNT(*|컬럼|DISTINCT 컬럼) : 행 갯수 반환
+    
+    COUNT(*) : 조회된 결과의 모든 행의 갯수 반환
+    COUNT(컬럼) : 컬럼의 NULL 값을 제외한 행의 갯수 반환
+    COUNT(DISTINCT 컬럼) : 컬럼값에서 중복을 제거한 행의 갯수 반환
+*/
+--전체 사원의 수
+SELECT COUNT(*)
+FROM EMPLOYEE;
+
+--여자 사원의 수
+SELECT COUNT(*)
+FROM EMPLOYEE
+WHERE SUBSTR(EMP_NO,  8, 1) IN('2','4');
+
+--보너스를 받는 사원의 수
+SELECT COUNT(BONUS)
+FROM EMPLOYEE;
+
+--현재 사원들이 총 몇개의 부서에 분포되어 있는지
+SELECT COUNT(DISTINCT DEPT_CODE)
 FROM EMPLOYEE;

@@ -2,6 +2,7 @@
 -- 1. EMPLOYEE테이블에서 사원 명과 직원의 주민번호를 이용하여 생년, 생월, 생일 조회
 SELECT EMP_NAME, EMP_NO, SUBSTR(EMP_NO, 1, 2) 생년, SUBSTR(EMP_NO,3,2) 생월, SUBSTR(EMP_NO,5,2)생일
     FROM EMPLOYEE;
+    
 -- 2. EMPLOYEE테이블에서 사원명, 주민번호 조회 (단, 주민번호는 생년월일만 보이게 하고, '-'다음 값은 '*'로 바꾸기)
 SELECT EMP_NAME, RPAD(SUBSTR(EMP_NO, 1, 6) || '-',14,'*') 주민번호
 FROM EMPLOYEE;
@@ -20,6 +21,7 @@ WHERE MOD(EMP_ID, 2) = 1;
 SELECT *
 FROM EMPLOYEE
 WHERE ADD_MONTHS(HIRE_DATE, 240) <= SYSDATE;
+--WHERE MONTHS_BETWEEN(SYSDATE,_HIRD_DATE) > 20*12;
 
 -- 6. EMPLOYEE 테이블에서 사원명, 급여 조회 (단, 급여는 '\9,000,000' 형식으로 표시)
 SELECT EMP_NAME, TO_CHAR(SALARY, 'L9,999,999') 급여
@@ -37,7 +39,7 @@ FROM EMPLOYEE;
 -- 8. EMPLOYEE테이블에서 부서코드가 D5, D6, D9인 사원만 조회하되 D5면 총무부
 --   , D6면 기획부, D9면 영업부로 처리(EMP_ID, EMP_NAME, DEPT_CODE, 총무부)
 --    (단, 부서코드 오름차순으로 정렬)
-SELECT EMP_ID, EMP_NAME, DEPT_CODE, REPLACE(REPLACE(REPLACE(DEPT_CODE, 'D5', '총무부'), 'D6', '기획부'), 'D9','영업부') 부서명
+SELECT EMP_ID, EMP_NAME, DEPT_CODE, DECODE(DEPT_CODE, 'D5', '총무부', 'D6', '기획부', 'D9', '영업부') 부서명
 FROM EMPLOYEE
 WHERE DEPT_CODE IN('D5', 'D6', 'D9')
 ORDER BY DEPT_CODE;
@@ -58,5 +60,9 @@ WHERE DEPT_CODE = 'D5';
 
 -- 11. EMPLOYEE테이블에서 직원들의 입사일로부터 년도만 가지고 => 각 년도별 입사 인원수 조회
 --      전체 직원 수, 2001년, 2002년, 2003년, 2004년
-SELECT EMP_ID
+SELECT COUNT(*) "전체 직원 수", 
+      COUNT(CASE WHEN TO_CHAR(HIRE_DATE, 'YYYY') = '2001' THEN 1 END) AS "2001년 입사자",
+      COUNT(CASE WHEN TO_CHAR(HIRE_DATE, 'YYYY') = '2002' THEN 1 END) AS "2002년 입사자",
+      COUNT(CASE WHEN TO_CHAR(HIRE_DATE, 'YYYY') = '2003' THEN 1 END) AS "2003년 입사자",
+      COUNT(CASE WHEN TO_CHAR(HIRE_DATE, 'YYYY') = '2004' THEN 1 END) AS "2004년 입사자"
 FROM EMPLOYEE;
