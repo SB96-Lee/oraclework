@@ -1,17 +1,21 @@
---영문학(학과코드 002) 학생들 학번, 이름, 입학년도를 입학년도가 빠른순 (헤더는 학번, 이름, 입학년도 표시)
+--1. 영문학(학과코드 002) 학생들 학번, 이름, 입학년도를 입학년도가 빠른순 (헤더는 학번, 이름, 입학년도 표시)
 SELECT STUDENT_NO 학번, STUDENT_NAME 이름, ENTRANCE_DATE 입학년도
 FROM TB_STUDENT
 WHERE DEPARTMENT_NO = 002
 ORDER BY ENTRANCE_DATE;
 
---이름이 세글자가 아닌 교수의 이름과 주민번호 출력
+--2. 이름이 세글자가 아닌 교수의 이름과 주민번호 출력
 SELECT PROFESSOR_NAME, PROFESSOR_SSN
 FROM tb_professor
 WHERE LENGTH(PROFESSOR_NAME) != 3
 ORDER BY PROFESSOR_NAME;
 
---남자교수들 이름, 나이 출력, 나이 오름차순, 헤더 교수이름, 나이 / 나이는 만으로 표시
-SELECT PROFESSOR_NAME 교수이름, TO_CHAR(SYSDATE, 'RRRR') - TO_CHAR(TO_DATE(SUBSTR(PROFESSOR_SSN,1,6), 'RRMMDD'),'RRRR')  나이
-FROM TB_PROFESSOR
-WHERE EXTRACT(MONTH FROM TO_DATE(SUBSTR(PROFESSOR_SSN,1,6), 'RRMMDD') - EXTRACT(MONTH FROM SYSDATE)  
+--3. 남자교수들 이름, 나이 출력, 나이 오름차순, 헤더 교수이름, 나이 / 나이는 만으로 표시
+SELECT PROFESSOR_NAME 교수이름, EXTRACT(YEAR FROM SYSDATE) - (19||SUBSTR(PROFESSOR_SSN, 1,2)) 나이
+FROM TB_PROFESSOR 
+WHERE SUBSTR(PROFESSOR_SSN,8,1) IN('1','3')
 ORDER BY 나이;
+
+--4. 교수들 이름 중 성을 제외한 이름 출력, 헤더는 이름
+SELECT SUBSTR(PROFESSOR_NAME, 2,2) 이름
+FROM TB_PROFESSOR;
