@@ -197,3 +197,330 @@ INSERT INTO MEM_UNIQUE3 VALUES(3, 'user03', 'pwd03', '이고잉', NULL,NULL,NULL
 
 --ORA-00001: 무결성 제약 조건(DDL.NO_UNIQUE)에 위배됩니다
 INSERT INTO MEM_UNIQUE3 VALUES(3, 'user03', 'pwd03', '박한빛', NULL,NULL,NULL);
+
+INSERT INTO MEM_UNIQUE3 VALUES(4, 'user04', 'pwd04', '박아름', 'ㄱ' ,NULL,NULL);
+--> 성별이 유효한 값이 아니어도 입력됨
+
+------------------------------------------------------------------------------------------------------------
+/*
+    * CHECK(조건식) 제약조건 
+    해당 컬럼값에 들어올 수 있는 값에 대한 조건을 제시
+    해당 조건에 맞는 데이터값만 입력하도록 함
+*/
+
+--컬럼 레벨 방식
+CREATE TABLE MEM_CHECK (
+    MEM_NO NUMBER NOT NULL, 
+    MEM_ID VARCHAR2(20) NOT NULL,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3), -- CHECK(GENDER IN('남','여')),
+    PHONE VARCHAR2(20),
+    EMAIL VARCHAR2(50),
+    CHECK(GENDER IN('남','여')), --테이블 레벨 방식
+    UNIQUE(MEM_NO),
+    UNIQUE(MEM_ID)
+);
+
+INSERT INTO MEM_CHECK VALUES(1, 'user01', 'pwd01', '홍길동','남','010-1234-5678','hong@naver.com');
+INSERT INTO MEM_CHECK VALUES(2, 'user02', 'pwd02', '나순이','영','010-1982-2929','na@google.com');
+--CHECK 제약조건 위배
+
+------------------------------------------------------------------------------------------------------------
+/*
+    * PRIMARY KEY(기본키) 제약조건
+    테이블에서 각 행들을 식별하기 위해 사용될 컬럼에 부여하는 제약조건(식별자 역할)
+    그 컬럼에 NOT NULL + UNIQUE 제약조건 -> 검색, 삭제, 수정 등에 기본키의 컬럼을 이용한   
+    EX) 회원번호, 학번, 사원번호, 운송장 번호, 예약번호, 주문번호...
+    
+    **유의사항 : 한 테이블 당 오로지 한개만 설정 가능
+*/
+
+CREATE TABLE MEM_PRIMARY (
+    MEM_NO NUMBER PRIMARY KEY, --컬럼 레벨 방식
+    MEM_ID VARCHAR2(20) NOT NULL UNIQUE,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3) CHECK(GENDER IN('남','여')),
+    PHONE VARCHAR2(20),
+    EMAIL VARCHAR2(50)
+);
+
+--테이블 레벨 방식
+CREATE TABLE MEM_PRIMARY2 (
+    MEM_NO NUMBER,
+    MEM_ID VARCHAR2(20) NOT NULL,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3),
+    PHONE VARCHAR2(20),
+    EMAIL VARCHAR2(50),
+    PRIMARY KEY(MEM_NO),
+    UNIQUE(MEM_ID),
+    CHECK(GENDER IN('남','여'))    
+);
+
+CREATE TABLE MEM_PRIMARY3 (
+    MEM_NO NUMBER PRIMARY KEY,
+    MEM_ID VARCHAR2(20) PRIMARY KEY -- 오류 : PRIMARY KEY는 한개만 가능 
+);
+
+INSERT INTO MEM_PRIMARY VALUES(1, 'user01', 'pwd01', '홍길동','남','010-1234-5678','hong@naver.com');
+INSERT INTO MEM_PRIMARY VALUES(2, 'user02', 'pwd02', '나순이','여','010-1982-2929','na@google.com');
+INSERT INTO MEM_PRIMARY VALUES(NULL, 'user02', 'pwd02', '나순이','여','010-1982-2929','na@google.com');
+INSERT INTO MEM_PRIMARY VALUES(2, 'user03', 'pwd02', '나순이','여','010-1982-2929','na@google.com');
+
+/*
+    *복합키 : 기본키를 2개 이상의 컬럼을 묶어서 사용
+    
+    -복합키 사용 예) 찜하기
+    회원번호 | 상품
+       1   |  A  ->   1A
+       1   |  A  ->   부적합
+       1   |  B  ->   1B
+       1   |  C  ->   1C  
+       2   |  A  ->   2A
+       2   |  C  ->   2C
+*/
+
+CREATE TABLE TB_MULTI(
+    MEM_NO NUMBER,
+    PRODUCT_NAME VARCHAR2(10),
+    LIKE_DATE DATE,
+    PRIMARY KEY(MEM_NO, PRODUCT_NAME)
+);
+
+CREATE TABLE TB_MULTI2(
+    MEM_NO NUMBER,
+    PRODUCT_NAME VARCHAR2(10),
+    LIKE_DATE DATE,
+    PRIMARY KEY(MEM_NO),
+    PRIMARY KEY(PRODUCT_NAME) --오류
+);
+
+INSERT INTO TB_MULTI VALUES(1, 'A', SYSDATE);
+INSERT INTO TB_MULTI VALUES(1, 'B', SYSDATE);
+INSERT INTO TB_MULTI VALUES(2, 'B', SYSDATE);
+INSERT INTO TB_MULTI VALUES(1, 'B', SYSDATE); --> 오류
+
+----------------------------------------------------------------------------------
+--회원등급에 대한 테이블 생성
+CREATE TABLE MEM_GRADE(
+    GRADE_CODE NUMBER PRIMARY KEY,
+    GRADE_NAME VARCHAR2(30) NOT NULL
+);
+
+-- 10: 일반회원, 20 : 우수회원, 30 : 특별회원
+INSERT INTO MEM_GRADE VALUES(10, '일반회원');
+INSERT INTO MEM_GRADE VALUES(20, '우수회원');
+INSERT INTO MEM_GRADE VALUES(30, '특별회원');
+
+--회원정보 테이블 생성
+
+CREATE TABLE MEM (
+    MEM_NO NUMBER PRIMARY KEY, 
+    MEM_ID VARCHAR2(20) NOT NULL UNIQUE,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3) CHECK(GENDER IN('남','여')),
+    PHONE VARCHAR2(20),
+    EMAIL VARCHAR2(50),
+    GRADE_ID NUMBER --회원 등급 보관 컬럼
+);
+
+INSERT INTO MEM VALUES(1, 'user01', 'pwd01', '홍길동','남','010-1234-5678','hong@naver.com', NULL);
+INSERT INTO MEM VALUES(2, 'user02', 'pwd02', '나순이','여','010-1982-2929','na@google.com', 10);
+INSERT INTO MEM VALUES(3, 'user03', 'pwd03', '김순이','여','010-1982-2929','na@google.com', 50);
+--유효한 회원 등급이 아님에도 입력됨
+
+----------------------------------------------------------------------------------
+/*
+    *FOREIGN KEY(외래키) 제약
+    다른 테이블에 존재하는 값만 들어와야 되는 컬럼에 부여하는 제약조건
+    --> 다른 테이블을 참조한다라는 표현
+    --> 주로 FOREIGN KEY 제약조건에 의해 테이블 간의 관계가 형성됨
+
+    >> 컬럼 레벨 방식
+     -- 컬럼명 자료형 REFERENCES 참조할테이블명(참조할컬럼명)
+        컬럼명 자료형 [CONSTRAINT 제약조건명] REFERENCES 참조할테이블명(참조할컬럼명)
+        
+    >> 테이블 레벨 방식
+    --FOREIGN KEY(컬럼명) REFERENCES 참조할테이블명(참조할컬럼명)
+     [CONSTRAINT 제약조건명] FOREIGN KEY(컬럼명) REFERENCES 참조할테이블명(참조할컬럼명)
+*/
+
+CREATE TABLE MEM2 (
+    MEM_NO NUMBER PRIMARY KEY, 
+    MEM_ID VARCHAR2(20) NOT NULL UNIQUE,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3) CHECK(GENDER IN('남','여')),
+    PHONE VARCHAR2(20),
+    EMAIL VARCHAR2(50),
+    GRADE_ID NUMBER REFERENCES MEM_GRADE(GRADE_CODE) --부모테이블
+);
+
+INSERT INTO MEM2 VALUES(1, 'user01', 'pwd01', '홍길동','남','010-1234-5678','hong@naver.com', NULL);
+INSERT INTO MEM2 VALUES(2, 'user02', 'pwd02', '나순이','여','010-1982-2929','na@google.com', 10);
+INSERT INTO MEM2 VALUES(3, 'user03', 'pwd03', '김순이','여','010-1982-2929','na@google.com', 50);
+
+--MEM_GRADE(부모테이블), MEM2(자식테이블)
+--> 이떄 부모테이블에서 데이턱밧을 삭제할 경우 문제발생
+--  데이터 삭제시 : DELETE FROM 테이블명 WHERE 조건;
+
+--> MEM_GRADE테이블에서 10번 등급을 삭제
+DELETE FROM MEM_GRADE
+WHERE GRADE_CODE = 10;
+--자식 테이블에서 10이라는 값을 사용하고 있기 때문에 삭제 안됨
+
+DELETE FROM MEM_GRADE
+WHERE GRADE_CODE = 30;
+--자식 테이블에 30이라는 값을 사용하고 있지 않기 때문에 삭제됨.
+
+--> 자식 테이블이 값을 사용할 경우 부모테이블로부터 무조건 삭제가 안되는 삭제제한 옵션이 걸려있음
+INSERT INTO MEM_GRADE VALUES(30, '특별회원');
+
+--*삭제 옵션*----------------------------------------------
+/*
+    *자식테이블 생성시 외래키 제약조건 기술시 삭제옵션 지정가능
+    -ON DELETE RESTRICTED(기본값) : 삭제불가. 자식이 값을 사용하면 부모테이블의 값 삭제 불가
+    -ON DELETE SET NULL : 부모 데이터 삭제시 해당 데이터를 쓰고 있는 자식데이터의 값을 null로 변경
+    -ON DELETE CASCADE : 부모 데이터 삭제시 해당 데이터를 쓰고 있는 자식데이터도 같이 삭제(행 전체 삭제)
+*/
+
+DROP TABLE MEM;
+DROP TABLE MEM2;
+DROP TABLE MEM3;
+
+CREATE TABLE MEM (
+    MEM_NO NUMBER PRIMARY KEY, 
+    MEM_ID VARCHAR2(20) NOT NULL UNIQUE,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3) CHECK(GENDER IN('남','여')),
+    PHONE VARCHAR2(20),
+    EMAIL VARCHAR2(50),
+    GRADE_ID NUMBER REFERENCES MEM_GRADE ON DELETE SET NULL
+    --부모테이블의 PRIMARY KEY와 외래키 제약조건을 걸때는 컬럼명 생략 가능
+    --(자동으로 부모테이블의 PRIMARY KEY와 외래키를 맺음)
+    );
+    
+INSERT INTO MEM VALUES(1, 'user01', 'pwd01', '홍길동','남','010-1234-5678','hong@naver.com', NULL);
+INSERT INTO MEM VALUES(2, 'user02', 'pwd02', '나순이','여','010-1982-2929','na@google.com', 10);
+INSERT INTO MEM VALUES(3, 'user03', 'pwd03', '김순이','여','010-1982-2929','na@google.com', 20);
+
+DELETE FROM MEM_GRADE
+WHERE GRADE_CODE = 10;
+--삭제됨. 자식테이블의 값은 NULL이 됨
+
+INSERT INTO MEM_GRADE VALUES(10,'일반회원');
+
+DROP TABLE MEM;
+
+CREATE TABLE MEM (
+    MEM_NO NUMBER PRIMARY KEY, 
+    MEM_ID VARCHAR2(20) NOT NULL UNIQUE,
+    MEM_PWD VARCHAR2(20) NOT NULL,
+    MEM_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3) CHECK(GENDER IN('남','여')),
+    PHONE VARCHAR2(20),
+    EMAIL VARCHAR2(50),
+    GRADE_ID NUMBER REFERENCES MEM_GRADE ON DELETE CASCADE
+    );
+    
+INSERT INTO MEM VALUES(1, 'user01', 'pwd01', '홍길동','남','010-1234-5678','hong@naver.com', NULL);
+INSERT INTO MEM VALUES(2, 'user02', 'pwd02', '나순이','여','010-1982-2929','na@google.com', 10);
+INSERT INTO MEM VALUES(3, 'user03', 'pwd03', '김순이','여','010-1982-2929','na@google.com', 20);
+INSERT INTO MEM VALUES(4, 'user04', 'pwd04', '박순이','여','010-1982-2929','na@google.com', 10);
+
+DELETE FROM MEM_GRADE
+WHERE GRADE_CODE = 10;
+--삭제됨, 자식도 같이 삭제(행 전체 삭제)
+
+DROP TABLE MEM2;
+
+------------------------------------------------------------------------------------------
+/*
+    <DEFAULT 기본값>
+    : 제약조건은 아님
+    컬럼에 값을 넣지 않았을 때 기본값이 들어가도록 해줄 수 있음.
+    
+    컬렴명 자료형 DEFAULT 기본값 [제약조건]
+*/
+CREATE TABLE MEMBER2(
+    MEM_NO NUMBER PRIMARY KEY,
+    MEM_ID VARCHAR(20) NOT NULL UNIQUE,
+    MEM_NAME VARCHAR(30) NOT NULL,
+    HOBBY VARCHAR(50) DEFAULT '없음',
+    MEM_DATE DATE DEFAULT SYSDATE,
+    AGE NUMBER
+    );
+    
+INSERT INTO MEMBER2 VALUES(1, 'user01', '홍길동', '운동', '25/02/09', 25);
+INSERT INTO MEMBER2 VALUES(2, 'user02', '김한글', null, null, NULL);
+INSERT INTO MEMBER2 VALUES(3, 'user03', '이고잉', DEFAULT, DEFAULT, NULL);
+
+INSERT INTO MEMBER2(MEM_NO, MEM_ID, MEM_NAME) VALUES(4, 'user04', '빛나리');
+
+--=======================================================================================
+--                               <tjoeun 계정으로 실행>
+/*
+    <SUBQUERY를 이용한 테이블 생성>
+    :테이블을 복사하는 개념
+    - 테이블의 구조만 복사
+    - 테이블의 구조 및 데이터 모두 복사
+    
+    [표현식]
+    CREATE TABLE 테이블명
+    AS 서버쿼리;
+*/
+
+--EMPLOYEE 테이블을 모두 복사
+CREATE TABLE EMPLOYEE_COPY
+AS SELECT*
+    FROM EMPLOYEE;
+    
+    -- 컬럼, 데이터 복사
+    -- 제약조건의 경우 NOT NULL만 복사됨. (커멘트 등도 전부 초기화)
+    
+--EMPLOYEE테이블을 구조만 복수
+CREATE TABLE EMPLOYEE_COPY2
+AS SELECT *
+    FROM EMPLOYEE
+    WHERE 1=0; -- 1=2, 1=3 이든 일치하지 않는 값이면 상관 없음
+    
+--EMPLOYEE 테이블의 몇개의 컬럼과 연봉의 컬럼이 있는 테이블 생성
+CREATE TABLE EMPLOYEE_COPY3
+AS SELECT EMP_NO, EMP_ID, EMP_NAME, SALARY, SALARY*12
+   FROM EMPLOYEE;
+   --오류 : 산술, 함수식이 들어간 컬럼은 반드시 별칭 부여
+   
+CREATE TABLE EMPLOYEE_COPY3
+AS SELECT EMP_NO, EMP_ID, EMP_NAME, SALARY, SALARY*12 연봉
+   FROM EMPLOYEE;
+   
+------------------------------------------------------------------------------------------
+/*
+    *테이블을 다 생성한 후에 제약조건 추가
+    ALTER TABLE 테이블명 변경할 내용;
+    -PRIMARY KEY : ALTER TABLE 테이블명 ADD PRIMARY KEY(컬럼명);
+    -FOREIGN KEY : ALTER TABLE 테이블명 ADD FOREIGN KEY(컬럼명) REFERENCES 참조할 테이블명[(참조할 컬럼명)];
+    -UNIQUE : ALTER TABLE 테이블명 ADD UNIQUE(컬럼명);
+    -CHECK : ALTER TABLE 테이블명 ADD CHECK(컬럼에 대한 조건식);
+    -NOT NULL : ALTER TABLE 테이블명 MODIFY 컬렴명 NOT NULL;
+*/
+--EMPLOYEE_COPY 테이블에 PRIMARY KEY 추가
+ALTER TABLE EMPLOYEE_COPY ADD PRIMARY KEY(EMP_ID);
+
+--EMPLOYEE_COPY 테이블에 DEPARTMENT 외래키 추가
+ALTER TABLE EMPLOYEE_COPY ADD FOREIGN KEY(DEPT_CODE) REFERENCES DEPARTMENT;
+
+--COMMENT 넣기
+COMMENT ON COLUMN EMPLOYEE_COPY.EMP_ID IS '회원번호';
+COMMENT ON COLUMN EMPLOYEE_COPY.EMP_NAME IS '회원이름';
+
+--EMPLOYEE_COPY 테이블에 JOB 외래키 추가
+ALTER TABLE EMPLOYEE_COPY ADD FOREIGN KEY(JOB_CODE) REFERENCES JOB;
+
+--DEFAULT MODIFY
+ALTER TABLE EMPLOYEE_COPY MODIFY ENT_YN DEFAULT 'N';
